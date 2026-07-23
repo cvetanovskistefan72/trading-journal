@@ -1040,23 +1040,23 @@
     if (e.target.classList.contains('shot-file-input')) {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-          const maxW = 900;
-          const scale = Math.min(1, maxW / img.width);
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          slot.dataUrl = canvas.toDataURL('image/jpeg', 0.72);
-          renderShotSlots();
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
+      if (file.size > 5 * 1024 * 1024) { setStatus('Image too large — max 5MB', true); return; }
+      setStatus('Uploading image...', false);
+      const form = new FormData();
+      form.append('image', file);
+      try {
+        const res = await fetch('https://api.imgbb.com/1/upload?key=77fc2a3fdba953f67976f0615e3a5ccd', {
+          method: 'POST',
+          body: form,
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error('ImgBB upload failed');
+        slot.dataUrl = json.data.url;
+        setStatus('Image uploaded ✓', false);
+        renderShotSlots();
+      } catch (err) {
+        setStatus('Image upload failed: ' + err.message, true);
+      }
     }
   });
 
