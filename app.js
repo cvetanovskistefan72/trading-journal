@@ -1019,7 +1019,7 @@
     renderShotSlots();
   });
 
-  $('shot-grid').addEventListener('change', (e) => {
+  $('shot-grid').addEventListener('change', async (e) => {
     const uid = e.target.dataset.uid;
     if (!uid) return;
     const slot = shotSlots.find(s => s.uid === uid);
